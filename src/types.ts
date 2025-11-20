@@ -10,3 +10,15 @@ export interface Job {
   notified?: boolean;
 }
 
+export interface Note {
+  id?: string;
+  title: string;
+  content: string;
+  color?: string;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  isPinned?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

@@ -12,12 +12,42 @@ export interface Job {
   notified?: boolean;
 }
 
+export interface Note {
+  id?: string;
+  title: string;
+  content: string;
+  color?: string;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  isPinned?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 contextBridge.exposeInMainWorld('electronAPI', {
   getJobs: (): Promise<Job[]> => ipcRenderer.invoke('get-jobs'),
   saveJob: (job: Job): Promise<Job> => ipcRenderer.invoke('save-job', job),
   deleteJob: (jobId: string): Promise<boolean> => ipcRenderer.invoke('delete-job', jobId),
   showNotification: (title: string, body: string): Promise<boolean> =>
     ipcRenderer.invoke('show-notification', title, body),
+  // Notes API
+  getNotes: (): Promise<Note[]> => ipcRenderer.invoke('get-notes'),
+  saveNote: (note: Note): Promise<Note> => ipcRenderer.invoke('save-note', note),
+  deleteNote: (noteId: string): Promise<boolean> => ipcRenderer.invoke('delete-note', noteId),
+  // Window management
+  createStickyNoteWindow: (noteId: string): Promise<boolean> => 
+    ipcRenderer.invoke('create-sticky-note-window', noteId),
+  closeStickyNoteWindow: (noteId: string): Promise<boolean> => 
+    ipcRenderer.invoke('close-sticky-note-window', noteId),
+  // Get current window type
+  getWindowType: (): Promise<string> => ipcRenderer.invoke('get-window-type'),
+  // Get note data for sticky window
+  getStickyNoteData: (): Promise<Note | null> => ipcRenderer.invoke('get-sticky-note-data'),
+  // Window controls
+  windowMinimize: (): Promise<void> => ipcRenderer.invoke('window-minimize'),
+  windowMaximize: (): Promise<void> => ipcRenderer.invoke('window-maximize'),
+  windowClose: (): Promise<void> => ipcRenderer.invoke('window-close'),
+  windowIsMaximized: (): Promise<boolean> => ipcRenderer.invoke('window-is-maximized'),
 });
 
 declare global {
@@ -27,6 +57,17 @@ declare global {
       saveJob: (job: Job) => Promise<Job>;
       deleteJob: (jobId: string) => Promise<boolean>;
       showNotification: (title: string, body: string) => Promise<boolean>;
+      getNotes: () => Promise<Note[]>;
+      saveNote: (note: Note) => Promise<Note>;
+      deleteNote: (noteId: string) => Promise<boolean>;
+      createStickyNoteWindow: (noteId: string) => Promise<boolean>;
+      closeStickyNoteWindow: (noteId: string) => Promise<boolean>;
+      getWindowType: () => Promise<string>;
+      getStickyNoteData: () => Promise<Note | null>;
+      windowMinimize: () => Promise<void>;
+      windowMaximize: () => Promise<void>;
+      windowClose: () => Promise<void>;
+      windowIsMaximized: () => Promise<boolean>;
     };
   }
 }

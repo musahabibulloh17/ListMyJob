@@ -18,6 +18,16 @@ Developed by **[Musa Habibulloh Al Faruq](https://www.linkedin.com/in/musa-habib
 - **Priority** - Mark jobs with priority (High, Medium, Low)
 - **Status Tracking** - Track job status (Pending, In Progress, Completed)
 - **Filter** - Filter jobs by status
+- **Pomodoro Timer** - Built-in Pomodoro timer with work sessions and breaks
+  - 25-minute work sessions
+  - 5-minute short breaks
+  - 15-minute long breaks (after 4 pomodoros)
+  - Visual progress indicator
+  - Desktop notifications when timer completes
+- **Sticky Notes** - Create and manage notes
+  - Create colorful sticky notes with custom colors
+  - Edit and delete notes
+  - Organize your notes with different colors
 - **Local Storage** - Data is stored locally on your computer
 
 ## Installation & Running
@@ -158,6 +168,20 @@ list-my-job/
 6. **Reminder**
    - Set reminder time when adding/editing a job
    - Desktop notification will appear automatically when the reminder time arrives
+
+7. **Pomodoro Timer**
+   - Use the Pomodoro timer at the top of the app to focus on your work
+   - Select between Work, Short Break, or Long Break modes
+   - Click Start to begin the timer
+   - The timer will automatically switch to break mode after a work session
+   - After 4 completed pomodoros, you'll get a long break
+   - Desktop notifications will alert you when each session completes
+
+8. **Sticky Notes**
+   - Create sticky notes in the Notes section
+   - Choose from multiple colors (Yellow, Green, Blue, Pink, Orange)
+   - Edit and delete notes as needed
+   - Notes are saved locally and persist between app restarts
 
 ## Technologies Used
 

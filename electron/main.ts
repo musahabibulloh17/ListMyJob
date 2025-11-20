@@ -8,7 +8,9 @@ const isDev = process.env.NODE_ENV === 'development' ||
               !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
+const stickyNoteWindows = new Map<string, BrowserWindow>();
 const jobsFilePath = path.join(app.getPath('userData'), 'jobs.json');
+const notesFilePath = path.join(app.getPath('userData'), 'notes.json');
 
 function loadJobs(): any[] {
   try {
@@ -30,13 +32,33 @@ function saveJobs(jobs: any[]): void {
   }
 }
 
+function loadNotes(): any[] {
+  try {
+    if (existsSync(notesFilePath)) {
+      const data = readFileSync(notesFilePath, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error loading notes:', error);
+  }
+  return [];
+}
+
+function saveNotes(notes: any[]): void {
+  try {
+    writeFileSync(notesFilePath, JSON.stringify(notes, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Error saving notes:', error);
+  }
+}
+
 function createWindow() {
   const iconPath = path.join(__dirname, '../assets/icon.png');
   const iconExists = existsSync(iconPath);
   
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 700,
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -44,6 +66,10 @@ function createWindow() {
     },
     ...(iconExists && { icon: iconPath }),
     title: 'List My Job',
+    backgroundColor: '#f5f5f5',
+    frame: false,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: false,
   });
 
   if (isDev) {
@@ -129,6 +155,222 @@ ipcMain.handle('show-notification', (_, title: string, body: string) => {
     return true;
   }
   return false;
+});
+
+// Notes IPC Handlers
+ipcMain.handle('get-notes', () => {
+  return loadNotes();
+});
+
+ipcMain.handle('save-note', (_, note: any) => {
+  const notes = loadNotes();
+  const newNote = {
+    ...note,
+    id: note.id || Date.now().toString(),
+    createdAt: note.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  
+  const existingIndex = notes.findIndex((n: any) => n.id === newNote.id);
+  if (existingIndex >= 0) {
+    notes[existingIndex] = newNote;
+  } else {
+    notes.push(newNote);
+  }
+  
+  saveNotes(notes);
+  return newNote;
+});
+
+ipcMain.handle('delete-note', (_, noteId: string) => {
+  const notes = loadNotes();
+  const filtered = notes.filter((n: any) => n.id !== noteId);
+  saveNotes(filtered);
+  
+  // Close sticky note window if open
+  if (stickyNoteWindows.has(noteId)) {
+    const window = stickyNoteWindows.get(noteId);
+    if (window) {
+      window.close();
+    }
+    stickyNoteWindows.delete(noteId);
+  }
+  
+  return true;
+});
+
+ipcMain.handle('create-sticky-note-window', (_, noteId: string) => {
+  // Close existing window if open
+  if (stickyNoteWindows.has(noteId)) {
+    const existingWindow = stickyNoteWindows.get(noteId);
+    if (existingWindow) {
+      existingWindow.close();
+    }
+  }
+
+  const notes = loadNotes();
+  const note = notes.find((n: any) => n.id === noteId);
+  if (!note) return false;
+
+  const iconPath = path.join(__dirname, '../assets/icon.png');
+  const iconExists = existsSync(iconPath);
+
+  const stickyWindow = new BrowserWindow({
+    width: note.size?.width || 300,
+    height: note.size?.height || 250,
+    x: note.position?.x || 100,
+    y: note.position?.y || 100,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      backgroundThrottling: false,
+    },
+    ...(iconExists && { icon: iconPath }),
+    title: note.title || 'Sticky Note',
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: true,
+    minimizable: false,
+    maximizable: false,
+    hasShadow: true,
+    backgroundColor: '#00000000', // Fully transparent background
+  });
+
+  // Store note ID in window BEFORE loading
+  (stickyWindow as any).noteId = noteId;
+
+  // Wait for window to be ready before loading
+  stickyWindow.once('ready-to-show', () => {
+    // Ensure noteId is still set
+    (stickyWindow as any).noteId = noteId;
+  });
+
+  if (isDev) {
+    stickyWindow.loadURL(`http://localhost:5173?noteId=${noteId}&type=sticky`);
+  } else {
+    stickyWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'), {
+      query: { noteId, type: 'sticky' }
+    });
+  }
+
+  stickyWindow.on('closed', () => {
+    stickyNoteWindows.delete(noteId);
+  });
+
+  stickyWindow.on('moved', () => {
+    const bounds = stickyWindow.getBounds();
+    const notes = loadNotes();
+    const noteIndex = notes.findIndex((n: any) => n.id === noteId);
+    if (noteIndex >= 0) {
+      notes[noteIndex].position = { x: bounds.x, y: bounds.y };
+      saveNotes(notes);
+    }
+  });
+
+  stickyWindow.on('resized', () => {
+    const bounds = stickyWindow.getBounds();
+    const notes = loadNotes();
+    const noteIndex = notes.findIndex((n: any) => n.id === noteId);
+    if (noteIndex >= 0) {
+      notes[noteIndex].size = { width: bounds.width, height: bounds.height };
+      saveNotes(notes);
+    }
+  });
+
+  stickyNoteWindows.set(noteId, stickyWindow);
+  return true;
+});
+
+ipcMain.handle('close-sticky-note-window', (_, noteId: string) => {
+  if (stickyNoteWindows.has(noteId)) {
+    const window = stickyNoteWindows.get(noteId);
+    if (window) {
+      window.close();
+    }
+    stickyNoteWindows.delete(noteId);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('get-window-type', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return 'main';
+  
+  const url = event.sender.getURL();
+  if (url.includes('type=sticky')) {
+    return 'sticky';
+  }
+  return 'main';
+});
+
+ipcMain.handle('get-sticky-note-data', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) {
+    console.error('get-sticky-note-data: Window not found');
+    return null;
+  }
+  
+  let noteId = (window as any).noteId;
+  
+  // If noteId not found in window, try to get from URL
+  if (!noteId) {
+    const url = event.sender.getURL();
+    const urlMatch = url.match(/[?&]noteId=([^&]+)/);
+    if (urlMatch) {
+      noteId = urlMatch[1];
+      (window as any).noteId = noteId; // Store it for next time
+    }
+  }
+  
+  if (!noteId) {
+    console.error('get-sticky-note-data: NoteId not found');
+    return null;
+  }
+
+  const notes = loadNotes();
+  const foundNote = notes.find((n: any) => n.id === noteId);
+  
+  if (!foundNote) {
+    console.error('get-sticky-note-data: Note not found with id:', noteId);
+    console.log('Available notes:', notes.map((n: any) => n.id));
+  }
+  
+  return foundNote || null;
+});
+
+// Window controls
+ipcMain.handle('window-minimize', () => {
+  const window = BrowserWindow.getFocusedWindow();
+  if (window) {
+    window.minimize();
+  }
+});
+
+ipcMain.handle('window-maximize', () => {
+  const window = BrowserWindow.getFocusedWindow();
+  if (window) {
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
+    }
+  }
+});
+
+ipcMain.handle('window-close', () => {
+  const window = BrowserWindow.getFocusedWindow();
+  if (window) {
+    window.close();
+  }
+});
+
+ipcMain.handle('window-is-maximized', () => {
+  const window = BrowserWindow.getFocusedWindow();
+  return window ? window.isMaximized() : false;
 });
 
 // Check reminder setiap menit

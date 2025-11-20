@@ -1,8 +1,9 @@
 import React from 'react';
 import { Job } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { ClockIcon, PlayIcon, CheckIcon, EditIcon, TrashIcon, CalendarIcon, BellIcon, FileTextIcon, AlertIcon } from './Icons';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface JobItemProps {
   job: Job;
@@ -12,29 +13,32 @@ interface JobItemProps {
 }
 
 const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange }) => {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'id' ? id : enUS;
+  
   const getPriorityLabel = (priority?: string) => {
     switch (priority) {
       case 'high':
-        return 'Tinggi';
+        return t('jobs.item.priority.high');
       case 'medium':
-        return 'Sedang';
+        return t('jobs.item.priority.medium');
       case 'low':
-        return 'Rendah';
+        return t('jobs.item.priority.low');
       default:
-        return 'Sedang';
+        return t('jobs.item.priority.medium');
     }
   };
 
   const getStatusLabel = (status?: string) => {
     switch (status) {
       case 'pending':
-        return 'Pending';
+        return t('jobs.item.status.pending');
       case 'in-progress':
-        return 'Sedang Dikerjakan';
+        return t('jobs.item.status.inProgress');
       case 'completed':
-        return 'Selesai';
+        return t('jobs.item.status.completed');
       default:
-        return 'Pending';
+        return t('jobs.item.status.pending');
     }
   };
 
@@ -59,7 +63,7 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
             {isOverdue && (
               <span className="overdue-badge">
                 <AlertIcon size={16} color="#dc3545" />
-                Terlambat!
+                {t('jobs.item.overdue')}
               </span>
             )}
           </div>
@@ -75,11 +79,11 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
           <div className="job-meta-item">
             <strong>
               <CalendarIcon size={14} />
-              Deadline:
+              {t('jobs.item.deadline')}
             </strong>
             <span className={isOverdue ? 'overdue-text' : ''}>
-              {format(new Date(job.deadline), 'dd MMM yyyy, HH:mm', { locale: id })}
-              {!isOverdue && ` (${formatDistanceToNow(new Date(job.deadline), { addSuffix: true, locale: id })})`}
+              {format(new Date(job.deadline), 'dd MMM yyyy, HH:mm', { locale: dateLocale })}
+              {!isOverdue && ` (${formatDistanceToNow(new Date(job.deadline), { addSuffix: true, locale: dateLocale })})`}
             </span>
           </div>
         )}
@@ -87,10 +91,10 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
           <div className="job-meta-item">
             <strong>
               <BellIcon size={14} />
-              Reminder:
+              {t('jobs.item.reminder')}
             </strong>
             <span>
-              {format(new Date(job.reminderTime), 'dd MMM yyyy, HH:mm', { locale: id })}
+              {format(new Date(job.reminderTime), 'dd MMM yyyy, HH:mm', { locale: dateLocale })}
             </span>
           </div>
         )}
@@ -98,9 +102,9 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
           <div className="job-meta-item">
             <strong>
               <FileTextIcon size={14} />
-              Dibuat:
+              {t('jobs.item.created')}
             </strong>
-            <span>{format(new Date(job.createdAt), 'dd MMM yyyy', { locale: id })}</span>
+            <span>{format(new Date(job.createdAt), 'dd MMM yyyy', { locale: dateLocale })}</span>
           </div>
         )}
       </div>
@@ -110,17 +114,17 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
           value={job.status || 'pending'}
           onChange={(e) => handleStatusChange(e.target.value as Job['status'])}
         >
-          <option value="pending">Pending</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
+          <option value="pending">{t('jobs.form.status.pending')}</option>
+          <option value="in-progress">{t('jobs.form.status.inProgress')}</option>
+          <option value="completed">{t('jobs.form.status.completed')}</option>
         </select>
         <button className="btn btn-primary" onClick={() => onEdit(job)}>
           <EditIcon size={18} />
-          <span>Edit</span>
+          <span>{t('jobs.item.edit')}</span>
         </button>
         <button className="btn btn-danger" onClick={() => job.id && onDelete(job.id)}>
           <TrashIcon size={18} />
-          <span>Hapus</span>
+          <span>{t('jobs.item.delete')}</span>
         </button>
       </div>
     </div>
