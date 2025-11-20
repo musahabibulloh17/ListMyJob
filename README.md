@@ -13,16 +13,16 @@ Developed by **[Musa Habibulloh Al Faruq](https://www.linkedin.com/in/musa-habib
 ## 📸 Screenshots
 
 ### Main Application - List My Job
-![List My Job](assets/Screenshot%202025-11-21%20050458.png)
+![List My Job](assets/Screenshot%202025-11-21%20050859.png)
 
 ### Pomodoro Timer
-![Pomodoro Timer](assets/Screenshot%202025-11-21%20050738.png)
+![Pomodoro Timer](assets/Screenshot%202025-11-21%20050458.png)
 
 ### Sticky Notes
-![Sticky Notes](assets/Screenshot%202025-11-21%20050806.png)
+![Sticky Notes](assets/Screenshot%202025-11-21%20050738.png)
 
 ### Settings
-![Settings](assets/Screenshot%202025-11-21%20050859.png)
+![Settings](assets/Screenshot%202025-11-21%20051550.png)
 
 ## Features
 
