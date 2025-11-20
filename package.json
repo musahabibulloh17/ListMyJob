@@ -1,0 +1,46 @@
+{
+  "name": "list-my-job",
+  "version": "1.0.0",
+  "description": "Aplikasi desktop untuk mengingatkan job yang akan dikerjakan",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
+    "dev:react": "vite",
+    "dev:electron": "tsc -p tsconfig.electron.json && wait-on http://localhost:5173 http://localhost:5174 && electron dist-electron/main.js",
+    "generate-icons": "node scripts/generate-icons.js",
+    "build": "npm run generate-icons && npm run build:electron && npm run build:react && electron-builder",
+    "build:win": "npm run generate-icons && npm run build:electron && npm run build:react && electron-builder --win",
+    "build:mac": "npm run generate-icons && npm run build:electron && npm run build:react && electron-builder --mac",
+    "build:linux": "npm run generate-icons && npm run build:electron && npm run build:react && electron-builder --linux",
+    "build:react": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "job",
+    "reminder",
+    "todo",
+    "desktop"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "sharp": "^0.34.5",
+    "to-ico": "^1.1.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "date-fns": "^3.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
