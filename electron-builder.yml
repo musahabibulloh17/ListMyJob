@@ -32,3 +32,9 @@ linux:
   icon: assets/icon.png
   artifactName: ${productName}-${version}.${ext}
 
+# Konfigurasi untuk publish ke GitHub Releases
+publish:
+  provider: github
+  owner: musahabibulloh17
+  repo: ListMyJob
+

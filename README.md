@@ -2,6 +2,10 @@
 
 Aplikasi desktop untuk mengelola dan mengingatkan tentang job yang akan dikerjakan. Dibangun dengan Electron, React, dan TypeScript.
 
+## 📥 Download Installer
+
+**Download installer terbaru di [GitHub Releases](https://github.com/musahabibulloh17/ListMyJob/releases)**
+
 ## Fitur
 
 - **Tambah & Edit Job** - Kelola daftar pekerjaan Anda dengan mudah
@@ -67,6 +71,33 @@ Ini akan:
 - Package aplikasi menjadi installer (.exe untuk Windows, .dmg untuk Mac, .AppImage untuk Linux)
 
 File installer akan berada di folder `release/`
+
+### Upload Installer ke GitHub Releases
+
+Untuk membuat file installer muncul di GitHub (di bagian Releases):
+
+**Cara 1: Manual Upload (Paling Mudah)**
+1. Build aplikasi: `npm run build:win`
+2. Buka GitHub repository Anda di browser
+3. Klik tombol **"Releases"** di sidebar kanan (atau kunjungi: `https://github.com/musahabibulloh17/ListMyJob/releases`)
+4. Klik **"Create a new release"**
+5. Isi:
+   - **Tag version**: `v1.0.0` (sesuaikan dengan versi di package.json)
+   - **Release title**: `v1.0.0` atau `Release v1.0.0`
+   - **Description**: Tulis changelog atau deskripsi release
+6. Di bagian **"Attach binaries"**, drag & drop file installer dari folder `release/`:
+   - `List My Job-1.0.0-Setup.exe`
+7. Klik **"Publish release"**
+
+Setelah itu, file installer akan muncul di halaman Releases dan bisa diunduh oleh siapa saja!
+
+**Cara 2: Otomatis dengan GitHub Token (Advanced)**
+Jika ingin otomatis upload saat build, set environment variable:
+```bash
+# Windows PowerShell
+$env:GH_TOKEN="your_github_token_here"
+npm run build:win -- --publish always
+```
 
 **Distribusi**: File installer bisa langsung dibagikan ke teman tanpa perlu hosting! Lihat [BUILD.md](./BUILD.md) untuk detail lengkap.
 
