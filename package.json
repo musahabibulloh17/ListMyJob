@@ -22,7 +22,7 @@
     "todo",
     "desktop"
   ],
-  "author": "",
+  "author": "Musa Habibulloh Al Faruq",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.0",

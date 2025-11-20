@@ -1,10 +1,14 @@
 # 📋 List My Job
 
-Aplikasi desktop untuk mengelola dan mengingatkan tentang job yang akan dikerjakan. Dibangun dengan Electron, React, dan TypeScript.
+> Aplikasi desktop yang membantu Anda mengelola dan melacak pekerjaan dengan mudah. Tambahkan job, set reminder, dan pantau deadline semua dalam satu tempat. Dibangun dengan Electron, React, dan TypeScript untuk performa optimal dan pengalaman pengguna yang smooth.
 
 ## 📥 Download Installer
 
 **Download installer terbaru di [GitHub Releases](https://github.com/musahabibulloh17/ListMyJob/releases)**
+
+## 👨‍💻 Developer
+
+Dikembangkan oleh **[Musa Habibulloh Al Faruq](https://www.linkedin.com/in/musa-habibulloh-al-faruq-370565336/)** - Software Developer
 
 ## Fitur
 
