@@ -110,6 +110,10 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.languageDesc': 'Choose your preferred language',
     'settings.english': 'English',
     'settings.indonesian': 'Indonesian',
+    'settings.theme': 'Theme',
+    'settings.themeDesc': 'Choose your preferred theme',
+    'settings.lightMode': 'Light Mode',
+    'settings.darkMode': 'Dark Mode',
   },
   id: {
     // App
@@ -210,6 +214,10 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.languageDesc': 'Pilih bahasa yang Anda inginkan',
     'settings.english': 'Bahasa Inggris',
     'settings.indonesian': 'Bahasa Indonesia',
+    'settings.theme': 'Tema',
+    'settings.themeDesc': 'Pilih tema yang Anda inginkan',
+    'settings.lightMode': 'Mode Terang',
+    'settings.darkMode': 'Mode Gelap',
   },
 };
 
