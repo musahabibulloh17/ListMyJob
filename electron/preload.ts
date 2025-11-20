@@ -48,6 +48,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   windowMaximize: (): Promise<void> => ipcRenderer.invoke('window-maximize'),
   windowClose: (): Promise<void> => ipcRenderer.invoke('window-close'),
   windowIsMaximized: (): Promise<boolean> => ipcRenderer.invoke('window-is-maximized'),
+  // Pomodoro Notification Audio
+  uploadNotificationAudio: (): Promise<string | null> => ipcRenderer.invoke('upload-notification-audio'),
+  getNotificationAudioPath: (): Promise<string | null> => ipcRenderer.invoke('get-notification-audio-path'),
+  deleteNotificationAudio: (): Promise<boolean> => ipcRenderer.invoke('delete-notification-audio'),
+  playNotificationAudio: (): Promise<string | null> => ipcRenderer.invoke('play-notification-audio'),
+  // Job Image API
+  uploadJobImage: (): Promise<string | null> => ipcRenderer.invoke('upload-job-image'),
+  deleteJobImage: (imagePath: string): Promise<boolean> => ipcRenderer.invoke('delete-job-image', imagePath),
 });
 
 declare global {
@@ -68,6 +76,12 @@ declare global {
       windowMaximize: () => Promise<void>;
       windowClose: () => Promise<void>;
       windowIsMaximized: () => Promise<boolean>;
+      uploadNotificationAudio: () => Promise<string | null>;
+      getNotificationAudioPath: () => Promise<string | null>;
+      deleteNotificationAudio: () => Promise<boolean>;
+      playNotificationAudio: () => Promise<string | null>;
+      uploadJobImage: () => Promise<string | null>;
+      deleteJobImage: (imagePath: string) => Promise<boolean>;
     };
   }
 }

@@ -70,6 +70,19 @@ const JobItem: React.FC<JobItemProps> = ({ job, onEdit, onDelete, onStatusChange
         </div>
       </div>
 
+      {job.imagePath && (
+        <div className="job-image-container">
+          <img 
+            src={`job-image://${job.imagePath.replace(/\\/g, '/')}`} 
+            alt={job.title}
+            className="job-image"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
       {job.description && (
         <p className="job-description">{job.description}</p>
       )}

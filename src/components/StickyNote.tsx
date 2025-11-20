@@ -85,6 +85,13 @@ const StickyNote: React.FC = () => {
   useEffect(() => {
     // Add class to body for sticky note window
     document.body.classList.add('sticky-note-window');
+    
+    // Check if dark mode is active and apply to documentElement
+    const isDarkMode = localStorage.getItem('app-theme') === 'dark';
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+    
     return () => {
       document.body.classList.remove('sticky-note-window');
     };

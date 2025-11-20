@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsIcon } from './Icons';
+import { SettingsIcon, HelpCircleIcon } from './Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -65,6 +65,14 @@ const Settings: React.FC = () => {
               {theme === 'dark' && <span className="theme-check">✓</span>}
             </button>
           </div>
+        </div>
+
+        <div className="settings-section settings-contact">
+          <div className="contact-header">
+            <HelpCircleIcon size={20} />
+            <h3>{t('settings.contact.title')}</h3>
+          </div>
+          <p className="contact-description">{t('settings.contact.description')}</p>
         </div>
       </div>
     </div>

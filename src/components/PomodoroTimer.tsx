@@ -1,121 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { TimerIcon, PlayIcon, PauseIcon, RotateCcwIcon } from './Icons';
+import React, { useState, useEffect } from 'react';
+import { TimerIcon, PlayIcon, PauseIcon, RotateCcwIcon, UploadIcon, MusicIcon, XIcon, StopIcon } from './Icons';
 import { useLanguage } from '../contexts/LanguageContext';
+import { usePomodoro } from '../contexts/PomodoroContext';
 
-type TimerMode = 'work' | 'shortBreak' | 'longBreak';
-
-interface PomodoroTimerProps {
-  onTimerComplete?: (mode: TimerMode) => void;
-}
-
-const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
+const PomodoroTimer: React.FC = () => {
   const { t } = useLanguage();
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
-  const [isRunning, setIsRunning] = useState(false);
-  const [mode, setMode] = useState<TimerMode>('work');
-  const [completedPomodoros, setCompletedPomodoros] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    timeLeft,
+    isRunning,
+    mode,
+    completedPomodoros,
+    isAlarmPlaying,
+    toggleTimer,
+    resetTimer,
+    switchMode,
+    stopAlarm,
+  } = usePomodoro();
+
+  const [hasCustomAudio, setHasCustomAudio] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    // Check if custom audio exists
+    if (typeof window !== 'undefined' && (window as any).electronAPI) {
+      (window as any).electronAPI.getNotificationAudioPath().then((audioPath: string | null) => {
+        setHasCustomAudio(!!audioPath);
+      });
+    }
+  }, []);
 
   const WORK_TIME = 25 * 60; // 25 minutes
   const SHORT_BREAK_TIME = 5 * 60; // 5 minutes
   const LONG_BREAK_TIME = 15 * 60; // 15 minutes
-
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, timeLeft]);
-
-  const handleTimerComplete = () => {
-    setIsRunning(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    // Show notification
-    if (typeof window !== 'undefined' && (window as any).electronAPI) {
-      const message = mode === 'work' 
-        ? t('pomodoro.notification.workComplete')
-        : t('pomodoro.notification.breakComplete');
-      (window as any).electronAPI.showNotification(t('pomodoro.title'), message);
-    }
-
-    if (onTimerComplete) {
-      onTimerComplete(mode);
-    }
-
-    // Auto switch to next mode
-    if (mode === 'work') {
-      const nextMode = completedPomodoros % 4 === 3 ? 'longBreak' : 'shortBreak';
-      setMode(nextMode);
-      setTimeLeft(nextMode === 'longBreak' ? LONG_BREAK_TIME : SHORT_BREAK_TIME);
-      if (nextMode === 'shortBreak' || nextMode === 'longBreak') {
-        setCompletedPomodoros((prev) => prev + 1);
-      }
-    } else {
-      setMode('work');
-      setTimeLeft(WORK_TIME);
-    }
-  };
-
-  const toggleTimer = () => {
-    setIsRunning(!isRunning);
-  };
-
-  const resetTimer = () => {
-    setIsRunning(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    
-    if (mode === 'work') {
-      setTimeLeft(WORK_TIME);
-    } else if (mode === 'shortBreak') {
-      setTimeLeft(SHORT_BREAK_TIME);
-    } else {
-      setTimeLeft(LONG_BREAK_TIME);
-    }
-  };
-
-  const switchMode = (newMode: TimerMode) => {
-    if (isRunning) {
-      setIsRunning(false);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-    
-    setMode(newMode);
-    if (newMode === 'work') {
-      setTimeLeft(WORK_TIME);
-    } else if (newMode === 'shortBreak') {
-      setTimeLeft(SHORT_BREAK_TIME);
-    } else {
-      setTimeLeft(LONG_BREAK_TIME);
-    }
-  };
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -128,6 +44,33 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
     if (mode === 'shortBreak') totalTime = SHORT_BREAK_TIME;
     if (mode === 'longBreak') totalTime = LONG_BREAK_TIME;
     return ((totalTime - timeLeft) / totalTime) * 100;
+  };
+
+  const handleUploadAudio = async () => {
+    if (typeof window === 'undefined' || !(window as any).electronAPI) return;
+    
+    setIsUploading(true);
+    try {
+      const audioPath = await (window as any).electronAPI.uploadNotificationAudio();
+      if (audioPath) {
+        setHasCustomAudio(true);
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAudio = async () => {
+    if (typeof window === 'undefined' || !(window as any).electronAPI) return;
+    
+    if (confirm(t('pomodoro.notification.deleteConfirm'))) {
+      const deleted = await (window as any).electronAPI.deleteNotificationAudio();
+      if (deleted) {
+        setHasCustomAudio(false);
+      }
+    }
   };
 
   return (
@@ -202,6 +145,12 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
             <span className="mode-label">
               {mode === 'work' ? t('pomodoro.focusTime') : mode === 'shortBreak' ? t('pomodoro.shortBreak') : t('pomodoro.longBreak')}
             </span>
+            {isAlarmPlaying && (
+              <div className="alarm-indicator">
+                <MusicIcon size={16} />
+                <span>{t('pomodoro.alarmPlaying')}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -224,6 +173,45 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
           <RotateCcwIcon size={20} />
           {t('pomodoro.reset')}
         </button>
+        {isAlarmPlaying && (
+          <button className="btn btn-danger" onClick={stopAlarm}>
+            <StopIcon size={20} />
+            {t('pomodoro.stopAlarm')}
+          </button>
+        )}
+      </div>
+
+      <div className="pomodoro-notification-settings">
+        <div className="notification-header">
+          <MusicIcon size={20} />
+          <h3>{t('pomodoro.notification.title')}</h3>
+        </div>
+        <div className="notification-content">
+          {hasCustomAudio ? (
+            <div className="notification-audio-active">
+              <span className="audio-status">
+                <MusicIcon size={16} />
+                {t('pomodoro.notification.customAudio')}
+              </span>
+              <button className="btn btn-small btn-danger" onClick={handleDeleteAudio}>
+                <XIcon size={16} />
+                {t('pomodoro.notification.remove')}
+              </button>
+            </div>
+          ) : (
+            <div className="notification-audio-empty">
+              <p>{t('pomodoro.notification.description')}</p>
+              <button 
+                className="btn btn-small btn-primary" 
+                onClick={handleUploadAudio}
+                disabled={isUploading}
+              >
+                <UploadIcon size={16} />
+                {isUploading ? t('pomodoro.notification.uploading') : t('pomodoro.notification.upload')}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

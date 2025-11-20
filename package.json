@@ -2,6 +2,7 @@
   "name": "list-my-job",
   "version": "1.0.0",
   "description": "Aplikasi desktop untuk mengingatkan job yang akan dikerjakan",
+  "productName": "List My Job",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",

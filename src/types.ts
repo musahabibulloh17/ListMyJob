@@ -8,6 +8,7 @@ export interface Job {
   status?: 'pending' | 'in-progress' | 'completed';
   createdAt?: string;
   notified?: boolean;
+  imagePath?: string;
 }
 
 export interface Note {

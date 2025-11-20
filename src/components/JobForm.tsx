@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Job } from '../types';
 import { format } from 'date-fns';
-import { EditIcon, PlusIcon, SaveIcon, XIcon } from './Icons';
+import { EditIcon, PlusIcon, SaveIcon, XIcon, UploadIcon } from './Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface JobFormProps {
@@ -19,7 +19,10 @@ const JobForm: React.FC<JobFormProps> = ({ job, onSave, onCancel }) => {
     reminderTime: '',
     priority: 'medium',
     status: 'pending',
+    imagePath: '',
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     if (job) {
@@ -28,6 +31,12 @@ const JobForm: React.FC<JobFormProps> = ({ job, onSave, onCancel }) => {
         deadline: job.deadline ? format(new Date(job.deadline), "yyyy-MM-dd'T'HH:mm") : '',
         reminderTime: job.reminderTime ? format(new Date(job.reminderTime), "yyyy-MM-dd'T'HH:mm") : '',
       });
+      if (job.imagePath) {
+        const imageUrl = `job-image://${job.imagePath.replace(/\\/g, '/')}`;
+        setImagePreview(imageUrl);
+      } else {
+        setImagePreview(null);
+      }
     } else {
       setFormData({
         title: '',
@@ -36,7 +45,9 @@ const JobForm: React.FC<JobFormProps> = ({ job, onSave, onCancel }) => {
         reminderTime: '',
         priority: 'medium',
         status: 'pending',
+        imagePath: '',
       });
+      setImagePreview(null);
     }
   }, [job]);
 
@@ -64,6 +75,32 @@ const JobForm: React.FC<JobFormProps> = ({ job, onSave, onCancel }) => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleUploadImage = async () => {
+    if (typeof window === 'undefined' || !(window as any).electronAPI) return;
+    
+    setIsUploadingImage(true);
+    try {
+      const imagePath = await (window as any).electronAPI.uploadJobImage();
+      if (imagePath) {
+        setFormData((prev) => ({ ...prev, imagePath }));
+        const imageUrl = `job-image://${imagePath.replace(/\\/g, '/')}`;
+        setImagePreview(imageUrl);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (formData.imagePath && typeof window !== 'undefined' && (window as any).electronAPI) {
+      await (window as any).electronAPI.deleteJobImage(formData.imagePath);
+    }
+    setFormData((prev) => ({ ...prev, imagePath: '' }));
+    setImagePreview(null);
   };
 
   return (
@@ -130,6 +167,35 @@ const JobForm: React.FC<JobFormProps> = ({ job, onSave, onCancel }) => {
             <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
               {t('jobs.form.reminderHint')}
             </small>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>{t('jobs.form.image')}</label>
+          <div className="image-upload-section">
+            {imagePreview ? (
+              <div className="image-preview-container">
+                <img src={imagePreview} alt="Job preview" className="image-preview" />
+                <button
+                  type="button"
+                  className="btn btn-small btn-danger"
+                  onClick={handleRemoveImage}
+                >
+                  <XIcon size={16} />
+                  {t('jobs.form.removeImage')}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-secondary btn-upload-image"
+                onClick={handleUploadImage}
+                disabled={isUploadingImage}
+              >
+                <UploadIcon size={18} />
+                {isUploadingImage ? t('jobs.form.uploadingImage') : t('jobs.form.uploadImage')}
+              </button>
+            )}
           </div>
         </div>
 

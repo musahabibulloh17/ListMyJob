@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, protocol } from 'electron';
 import * as path from 'path';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, copyFileSync, unlinkSync, mkdirSync } from 'fs';
+import { dialog } from 'electron';
 
 const isDev = process.env.NODE_ENV === 'development' || 
               process.defaultApp || 
@@ -11,6 +12,8 @@ let mainWindow: BrowserWindow | null = null;
 const stickyNoteWindows = new Map<string, BrowserWindow>();
 const jobsFilePath = path.join(app.getPath('userData'), 'jobs.json');
 const notesFilePath = path.join(app.getPath('userData'), 'notes.json');
+const notificationAudioPath = path.join(app.getPath('userData'), 'pomodoro-notification.mp3');
+const jobImagesDir = path.join(app.getPath('userData'), 'job-images');
 
 function loadJobs(): any[] {
   try {
@@ -96,6 +99,29 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Set app name for notifications
+  app.setAppUserModelId('com.listmyjob.app');
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.listmyjob.app');
+  }
+  
+  // Create job images directory if it doesn't exist
+  if (!existsSync(jobImagesDir)) {
+    mkdirSync(jobImagesDir, { recursive: true });
+  }
+  
+  // Register custom protocol for audio files
+  protocol.registerFileProtocol('pomodoro-audio', (request, callback) => {
+    const filePath = request.url.replace('pomodoro-audio://', '');
+    callback({ path: filePath });
+  });
+  
+  // Register custom protocol for job images
+  protocol.registerFileProtocol('job-image', (request, callback) => {
+    const filePath = request.url.replace('job-image://', '');
+    callback({ path: filePath });
+  });
+
   createWindow();
 
   app.on('activate', () => {
@@ -137,6 +163,17 @@ ipcMain.handle('save-job', (_, job: any) => {
 
 ipcMain.handle('delete-job', (_, jobId: string) => {
   const jobs = loadJobs();
+  const jobToDelete = jobs.find((j: any) => j.id === jobId);
+  
+  // Delete associated image if exists
+  if (jobToDelete && jobToDelete.imagePath && existsSync(jobToDelete.imagePath)) {
+    try {
+      unlinkSync(jobToDelete.imagePath);
+    } catch (error) {
+      console.error('Error deleting job image:', error);
+    }
+  }
+  
   const filtered = jobs.filter((j: any) => j.id !== jobId);
   saveJobs(filtered);
   return true;
@@ -373,6 +410,125 @@ ipcMain.handle('window-close', () => {
 ipcMain.handle('window-is-maximized', () => {
   const window = BrowserWindow.getFocusedWindow();
   return window ? window.isMaximized() : false;
+});
+
+// Pomodoro Notification Audio IPC Handlers
+ipcMain.handle('upload-notification-audio', async (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return null;
+
+  const result = await dialog.showOpenDialog(window, {
+    title: 'Select Notification Audio File',
+    filters: [
+      { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac'] },
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile']
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const sourcePath = result.filePaths[0];
+  try {
+    // Copy file to userData directory
+    copyFileSync(sourcePath, notificationAudioPath);
+    return notificationAudioPath;
+  } catch (error) {
+    console.error('Error copying notification audio:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('get-notification-audio-path', () => {
+  return existsSync(notificationAudioPath) ? notificationAudioPath : null;
+});
+
+ipcMain.handle('delete-notification-audio', () => {
+  try {
+    if (existsSync(notificationAudioPath)) {
+      unlinkSync(notificationAudioPath);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error deleting notification audio:', error);
+    return false;
+  }
+});
+
+// Job Image IPC Handlers
+ipcMain.handle('upload-job-image', async (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return null;
+
+  const result = await dialog.showOpenDialog(window, {
+    title: 'Select Image for Job',
+    filters: [
+      { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'] },
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile']
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const sourcePath = result.filePaths[0];
+  const fileName = `${Date.now()}-${path.basename(sourcePath)}`;
+  const destPath = path.join(jobImagesDir, fileName);
+  
+  try {
+    // Copy file to job images directory
+    copyFileSync(sourcePath, destPath);
+    return destPath;
+  } catch (error) {
+    console.error('Error copying job image:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('delete-job-image', (_, imagePath: string) => {
+  try {
+    if (imagePath && existsSync(imagePath)) {
+      unlinkSync(imagePath);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error deleting job image:', error);
+    return false;
+  }
+});
+
+ipcMain.handle('play-notification-audio', () => {
+  // First check for custom audio
+  if (existsSync(notificationAudioPath)) {
+    return notificationAudioPath;
+  }
+  
+  // Fallback to default audio
+  // Try multiple paths for different build scenarios
+  const defaultAudioPaths = [
+    // Development path
+    path.join(__dirname, '../assets/videoplayback.mp3'),
+    // Packaged app path (relative to executable)
+    path.join(process.resourcesPath, 'assets', 'videoplayback.mp3'),
+    // Alternative packaged path
+    path.join(app.getAppPath(), 'assets', 'videoplayback.mp3'),
+    // Another alternative
+    path.join(__dirname, '../../assets/videoplayback.mp3'),
+  ];
+  
+  for (const audioPath of defaultAudioPaths) {
+    if (existsSync(audioPath)) {
+      return audioPath;
+    }
+  }
+  
+  return null;
 });
 
 // Check reminder setiap menit
