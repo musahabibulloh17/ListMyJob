@@ -10,9 +10,26 @@
 
 Developed by **[Musa Habibulloh Al Faruq](https://www.linkedin.com/in/musa-habibulloh-al-faruq-370565336/)** - Software Developer
 
+## 📸 Screenshots
+
+### Main Application - List My Job
+![List My Job](assets/Screenshot%202025-11-21%20050458.png)
+
+### Pomodoro Timer
+![Pomodoro Timer](assets/Screenshot%202025-11-21%20050738.png)
+
+### Sticky Notes
+![Sticky Notes](assets/Screenshot%202025-11-21%20050806.png)
+
+### Settings
+![Settings](assets/Screenshot%202025-11-21%20050859.png)
+
 ## Features
 
 - **Add & Edit Jobs** - Manage your job list with ease
+  - Upload images to jobs for visual reference
+  - Set reminders and deadlines
+  - Track priority and status
 - **Reminder/Notifications** - Get desktop notifications when reminder time arrives
 - **Deadline Tracking** - Monitor your job deadlines
 - **Priority** - Mark jobs with priority (High, Medium, Low)
@@ -24,10 +41,19 @@ Developed by **[Musa Habibulloh Al Faruq](https://www.linkedin.com/in/musa-habib
   - 15-minute long breaks (after 4 pomodoros)
   - Visual progress indicator
   - Desktop notifications when timer completes
+  - Custom notification audio support
+  - Default audio fallback
+  - Manual alarm stop button
+  - Timer continues running in background when switching menus
 - **Sticky Notes** - Create and manage notes
   - Create colorful sticky notes with custom colors
   - Edit and delete notes
   - Organize your notes with different colors
+  - Dark mode support
+- **Settings** - Customize your application
+  - Language selection (English/Indonesian)
+  - Theme selection (Light Mode/Dark Mode)
+  - Contact information
 - **Local Storage** - Data is stored locally on your computer
 
 ## Installation & Running
