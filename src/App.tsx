@@ -176,9 +176,6 @@ function App() {
     <div className="app-container">
       <div className="title-bar">
         <div className="title-bar-drag-region"></div>
-        <div className="title-bar-content">
-          <span className="title-bar-title">List My Job</span>
-        </div>
         <WindowControls />
       </div>
       <div className="app-body">

@@ -70,6 +70,8 @@ function createWindow() {
     frame: false,
     titleBarStyle: 'hidden',
     titleBarOverlay: false,
+    roundedCorners: true,
+    transparent: false,
   });
 
   if (isDev) {

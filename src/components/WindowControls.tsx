@@ -46,16 +46,6 @@ const WindowControls: React.FC = () => {
   return (
     <div className="window-controls">
       <button
-        className="window-control window-control-close"
-        onClick={handleClose}
-        title="Close"
-        aria-label="Close"
-      >
-        <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1 1L5 5M5 1L1 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-        </svg>
-      </button>
-      <button
         className="window-control window-control-minimize"
         onClick={handleMinimize}
         title="Minimize"
@@ -81,6 +71,16 @@ const WindowControls: React.FC = () => {
             <path d="M1 1.5H4.5V5H1V1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
+      </button>
+      <button
+        className="window-control window-control-close"
+        onClick={handleClose}
+        title="Close"
+        aria-label="Close"
+      >
+        <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1L5 5M5 1L1 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
       </button>
     </div>
   );

@@ -68,6 +68,7 @@ body.sticky-note-window #root {
   overflow: hidden;
   border: none;
   animation: slideUp 0.5s ease-out;
+  border-radius: 12px;
 }
 
 .app-body {
@@ -88,6 +89,8 @@ body.sticky-note-window #root {
   flex-shrink: 0;
   z-index: 1000;
   padding-left: 8px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 
 .title-bar-drag-region {
@@ -124,6 +127,7 @@ body.sticky-note-window #root {
   -webkit-app-region: no-drag;
   padding: 0 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .window-control {
